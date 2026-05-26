@@ -18,6 +18,8 @@ function CopyRoomBadge({ code }) {
     navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy room link:', err);
     });
   }
 
@@ -30,7 +32,7 @@ function CopyRoomBadge({ code }) {
 
 function TicketDisplay({ value, fallback = 'Untitled', className = 'ticket-display' }) {
   const text = value || fallback;
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urlRegex = /(https?:\/\/[^\s]+[^.,;:'"\s])/g;
   const parts = text.split(urlRegex);
 
   if (parts.length === 1) {
@@ -94,7 +96,7 @@ export default function Room() {
       { ticket: roomState.ticket || 'Untitled', average: roomState.average, round },
       ...prev,
     ]);
-  }, [roomState?.status, roomState?.vote_round]);
+  }, [roomState?.status, roomState?.vote_round, roomState?.ticket, roomState?.average]);
 
   function handleNameSubmit(e) {
     e.preventDefault();

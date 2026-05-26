@@ -3,3 +3,5 @@ djangorestframework>=3.14
 channels>=4.0
 daphne>=4.0
 django-cors-headers>=4.3
+psycopg2-binary>=2.9.0
+dj-database-url>=2.1.0

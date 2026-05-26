@@ -17,7 +17,11 @@ export function useRoom(roomCode, { name, organizerToken } = {}) {
     if (!roomCode || !name) return;
 
     joinSentRef.current = false;
-    const ws = new WebSocket(`${WS_BASE}/${roomCode}/`);
+    let wsUrl = WS_BASE;
+    if (wsUrl.startsWith('/')) {
+      wsUrl = (window.location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + window.location.host + wsUrl;
+    }
+    const ws = new WebSocket(`${wsUrl}/${roomCode}/`);
     wsRef.current = ws;
 
     ws.onopen = () => {
