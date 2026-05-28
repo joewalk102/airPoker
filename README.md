@@ -5,7 +5,6 @@ Air Poker is a collaborative planning poker application designed for agile teams
 ## Features
 
 - **Real-time Collaboration:** Join rooms and see votes update in real-time via WebSockets.
-- **Anonymous/Named Voting:** Participants can enter a display name to join.
 - **Host Controls:** The room creator has the ability to start votes, set tickets/topics, reveal votes, and manage participants.
 - **Session History:** Keeps a log of past tickets and their estimated story points during a session.
 - **Responsive Design:** Works seamlessly on desktop and mobile devices.
