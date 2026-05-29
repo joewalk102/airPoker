@@ -55,7 +55,7 @@ jobs:
       if: matrix.node-version == '26.x' && always()
 
     - name: Archive test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: test-results-node-${{ matrix.node-version }}
@@ -73,8 +73,8 @@ jobs:
           
           **Test status:** ${testStatus.toUpperCase()}
           
-          - Node.js: 18.x, 20.x
-          - React 18.2.0
+          - Node.js: 22.x, 24.x, 26.x
+          - React
           - Vitest
           
           [View workflow details](${context.payload.pull_request.html_url}/checks)`;
@@ -85,4 +85,3 @@ jobs:
             repo: context.repo.repo,
             body: comment
           });
-
