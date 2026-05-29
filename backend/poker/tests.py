@@ -1,7 +1,8 @@
+import asyncio
 import uuid
 
-from config.asgi import application
 from channels.testing import WebsocketCommunicator
+from config.asgi import application
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -387,7 +388,6 @@ class PokerConsumerTestCase(TestCase):
         await part_comm.receive_json_from(timeout=5)
 
         # Give some time for broadcasts to be processed
-        import asyncio
         await asyncio.sleep(0.1)
 
         # Drain all pending messages on both participants before reveal
@@ -487,7 +487,6 @@ class PokerConsumerTestCase(TestCase):
 
         # Consume any pending broadcasts on organizer before revealing
         # (participant vote broadcasts may be queued)
-        import asyncio
         while True:
             try:
                 await asyncio.wait_for(org_comm.receive_json_from(), timeout=0.1)
