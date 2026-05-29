@@ -1,0 +1,118 @@
+name: Backend Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.13', '3.14']
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: poker_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
+
+    - name: Run Django migrations
+      run: |
+        cd backend
+        python manage.py migrate
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/poker_test
+        DJANGO_DEBUG: 'True'
+
+    - name: Run tests
+      run: |
+        cd backend
+        pytest -v --tb=short
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/poker_test
+        DJANGO_DEBUG: 'True'
+
+    - name: Generate coverage report
+      run: |
+        cd backend
+        pytest --cov=poker --cov-report=xml --cov-report=term
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/poker_test
+        DJANGO_DEBUG: 'True'
+      if: always()
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./backend/coverage.xml
+        flags: backend
+        name: backend-coverage
+      if: always()
+
+    - name: Comment PR with test results
+      uses: actions/github-script@v7
+      if: always() && matrix.python-version == '3.14' && github.event_name == 'pull_request'
+      with:
+        script: |
+          const testStatus = '${{ job.status }}';
+          const comment = `## Backend Tests ${testStatus === 'success' ? '✅' : '❌'}
+          
+          **Test status:** ${testStatus.toUpperCase()}
+          
+          **Python versions tested:**
+          - Python 3.12
+          - Python 3.13
+          - Python 3.14
+          
+          **Stack:**
+          - Django 4.2+
+          - Channels 4.0+
+          - PostgreSQL 15
+          
+          [View workflow details](${context.payload.pull_request.html_url}/checks)`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+

@@ -6,10 +6,9 @@ from django.core.asgi import get_asgi_application
 
 django_asgi_app = get_asgi_application()
 
+import poker.routing
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
-
-import poker.routing
 
 application = ProtocolTypeRouter(
     {

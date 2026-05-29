@@ -16,7 +16,7 @@ def _generate_code():
 
 class RoomCreateView(APIView):
     def post(self, request):
-        name = (request.data.get("name") or "Planning Poker").strip()[:100]
+        name = (request.data.get("name", "").strip() or "Planning Poker")[:100]
         for _ in range(10):
             try:
                 room = Room.objects.create(name=name, code=_generate_code())
