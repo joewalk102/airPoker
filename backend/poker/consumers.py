@@ -104,9 +104,14 @@ class PokerConsumer(AsyncWebsocketConsumer):
 
     async def handle_vote(self, data):
         state = rooms_state.get(self.room_code)
-        if not state or not self.participant_name or state["status"] != "voting":
+        if not state or not self.participant_name:
             return
         if self.channel_name not in state["participants"]:
+            return
+
+        # Only accept votes when voting is active
+        if state["status"] != "voting":
+            await self.broadcast_state()
             return
 
         value = str(data.get("value", "")).strip()
@@ -123,18 +128,27 @@ class PokerConsumer(AsyncWebsocketConsumer):
         await self.broadcast_state()
 
     async def handle_reveal(self, data):
-        if not self.is_organizer:
-            return
         state = rooms_state.get(self.room_code)
-        if state and state["status"] == "voting":
+        if not state:
+            return
+
+        if not self.is_organizer:
+            # Non-organizers can't reveal, but broadcast current state as feedback
+            await self.broadcast_state()
+            return
+
+        if state["status"] == "voting":
             state["status"] = "revealed"
             await self.broadcast_state()
 
     async def handle_set_ticket(self, data):
-        if not self.is_organizer:
-            return
         state = rooms_state.get(self.room_code)
         if not state:
+            return
+
+        if not self.is_organizer:
+            # Non-organizers can't set ticket, broadcast current state as feedback
+            await self.broadcast_state()
             return
 
         ticket = (data.get("ticket") or "").strip()[:200]
