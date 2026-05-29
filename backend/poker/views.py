@@ -9,17 +9,47 @@ from rest_framework.views import APIView
 from .models import Room
 
 
-def _generate_code():
-    chars = string.ascii_uppercase + string.digits
-    return "".join(secrets.choice(chars) for _ in range(6))
+class Rooms(APIView):
+    """
+    APIView for creating a new room.
 
+    GET /api/rooms/<code>/
+    POST /api/rooms/
+    """
 
-class RoomCreateView(APIView):
+    def get(self, request, code):
+        """
+        Retrieve details of a room by its code.
+
+        Args:
+            request (Request): The HTTP request object.
+            code (str): The unique code of the room.
+
+        Returns:
+            Response: HTTP response with room details or error message.
+        """
+        try:
+            room = Room.objects.get(code=code.upper())
+            return Response({"code": room.code, "name": room.name})
+        except Room.DoesNotExist:
+            return Response(
+                {"error": "Room not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
     def post(self, request):
+        """
+        Create a new room, including a unique code.
+
+        Args:
+            request (Request): The HTTP request object containing room creation data.
+
+        Returns:
+            Response: HTTP response with room details or error message.
+        """
         name = (request.data.get("name", "").strip() or "Planning Poker")[:100]
         for _ in range(10):
             try:
-                room = Room.objects.create(name=name, code=_generate_code())
+                room = Room.objects.create(name=name, code=self._generate_code())
                 break
             except IntegrityError:
                 continue
@@ -38,13 +68,13 @@ class RoomCreateView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
+    @staticmethod
+    def _generate_code():
+        """
+        Generate a random 6-digit code.
 
-class RoomDetailView(APIView):
-    def get(self, request, code):
-        try:
-            room = Room.objects.get(code=code.upper())
-            return Response({"code": room.code, "name": room.name})
-        except Room.DoesNotExist:
-            return Response(
-                {"error": "Room not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+        Returns:
+            str: A randomly generated 6-digit code.
+        """
+        chars = string.ascii_uppercase + string.digits
+        return "".join(secrets.choice(chars) for _ in range(6))
