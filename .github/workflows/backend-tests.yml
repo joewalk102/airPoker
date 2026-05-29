@@ -56,6 +56,7 @@ jobs:
         python manage.py migrate
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/poker_test
+        DJANGO_DEBUG: 'True'
 
     - name: Run tests
       run: |
@@ -63,6 +64,7 @@ jobs:
         pytest -v --tb=short
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/poker_test
+        DJANGO_DEBUG: 'True'
 
     - name: Generate coverage report
       run: |
@@ -70,6 +72,7 @@ jobs:
         pytest --cov=poker --cov-report=xml --cov-report=term
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/poker_test
+        DJANGO_DEBUG: 'True'
       if: always()
 
     - name: Upload coverage to Codecov
